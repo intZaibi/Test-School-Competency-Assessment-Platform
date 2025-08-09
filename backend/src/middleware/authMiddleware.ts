@@ -6,13 +6,13 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
   const headers = req.headers.authorization || '';
   let token = headers.startsWith('Bearer ') ? headers.slice(7) : null;
   if (!token) {
-    token = req.cookies.authToken;
+    token = req.cookies?.accessToken;
   }
 
   // @ts-ignore
   req.token = token;  // attached to be used in routesControllers
   
-  if (req.path === '/auth/login' || req.path === '/auth/refresh' || req.path === '/projects' || req.path === '/courses') return next(); // Bypass auth if requested to login or refresh route
+  if (req.path === '/api/auth/login' || req.path === '/api/auth/refresh' || req.path === '/api/auth/register') return next(); // Bypass auth if requested to login or refresh route
   
   if (!token) return res.status(401).json({ error: 'Unauthorized' });
   
