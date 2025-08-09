@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import { Request, Response } from 'express';
 import dotenv from 'dotenv';
 import User from '../models/UserSchema.js';
+import { sendOTPEmail } from '../services/nodemailer.js';
 dotenv.config();
 
 const login = async (req: Request, res: Response) => {
@@ -80,20 +81,7 @@ const register = async (req: Request, res: Response) => {
     newUser.token = token;
     await newUser.save();
   
-    res.cookie('accessToken', token, {
-      httpOnly: true, 
-      secure: true,
-      sameSite: 'none',
-      maxAge: 60 * 15 * 1000,
-    });
-  
-    res.cookie('refreshToken', token, {
-      httpOnly: true, 
-      secure: true,
-      sameSite: 'none',
-      maxAge: 60 * 60 * 1000 * 24 * 30,
-    });
-  
+    await sendOTPEmail(newUser.email, newUser.otp?.code || '', newUser.name);
     res.status(200).json({user: { userId: newUser.id, role: newUser.role }});
     
   } catch (error) {
@@ -198,4 +186,37 @@ const getUser = async (req: Request, res: Response) => {
   res.status(200).json({user: { userId: user.id, role: user.role }});
 }
 
-export {login, register, refresh, logout, getUser};
+
+const varifyOTP = async (req: Request, res: Response) => {
+  const { email, otp } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) return res.status(404).json({ error: "Email not found!" });
+  if (user.otp?.code !== otp) return res.status(401).json({ error: "Invalid OTP!" });
+  if (user.otp?.expiresAt && user.otp.expiresAt < new Date()) return res.status(401).json({ error: "OTP expired!" });
+  user.otp = { code: '', expiresAt: new Date(), isVerified: true };
+  await user.save();
+
+  const token = jwt.sign(
+    {userId: user.id, role: user.role},
+    process.env.JWT_SECRET || "enc",
+    { expiresIn: '1h' }
+  );
+
+  res.cookie('accessToken', token, {
+    httpOnly: true, 
+    secure: true,
+    sameSite: 'none',
+    maxAge: 60 * 15 * 1000,
+  });
+
+  res.cookie('refreshToken', token, {
+    httpOnly: true, 
+    secure: true,
+    sameSite: 'none',
+    maxAge: 60 * 60 * 1000 * 24 * 30,
+  });
+
+  return res.status(200).json({ message: "OTP verified successfully!", user: { userId: user.id, role: user.role } });
+}
+
+export {login, register, refresh, logout, getUser, varifyOTP};
