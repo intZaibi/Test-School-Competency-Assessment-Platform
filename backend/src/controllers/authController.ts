@@ -1,5 +1,7 @@
 import jwt from 'jsonwebtoken';
+import { Request, Response } from 'express';
 import dotenv from 'dotenv';
+import User from '../models/UserSchema.js';
 dotenv.config();
 
 const login = async (req: Request, res: Response) => {
@@ -13,9 +15,9 @@ const login = async (req: Request, res: Response) => {
   }
   
   // if db is not accessable 
-  if (req.db == undefined) return res.status(500).json({ error: "Something went wrong!" });
+  if (req == undefined) return res.status(500).json({ error: "Something went wrong!" });
 
-  const user = req.db.users?.find((user)=> user.email == email);
+  const user = await User.findOne({ email });
 
   if (!user) return res.status(404).json({ error: "Email not found!" });
 
@@ -26,11 +28,11 @@ const login = async (req: Request, res: Response) => {
     { expiresIn: '1h' }
   );
 
-  const index = req.db.users.findIndex((user)=>user.email==email)
-  req.db.users[index].token = token;
+  user.token = token;
+  await user.save();
   try {
 
-    // fs.writeFileSync(seedPath, JSON.stringify(req.db, null, 2), 'utf-8');
+    // fs.writeFileSync(seedPath, JSON.stringify(req, null, 2), 'utf-8');
   } catch (error) {
     console.log('db updation failed!')
     return res.status(500).json({ error: "Something went wrong!" });
@@ -40,7 +42,7 @@ const login = async (req: Request, res: Response) => {
   res.cookie('authToken', token, {
     httpOnly: true, 
     secure: true,
-    sameSite: 'None',
+    sameSite: 'none',
     maxAge: 60 * 60 * 1000,
   });
 
@@ -49,9 +51,10 @@ const login = async (req: Request, res: Response) => {
 
 
 
-const refresh = async (req, res) => {
-  jwt.verify(req.token, process.env.JWT_SECRET, (err, decoded) => {
-    if (err && err.error.includes('expired')) {
+const refresh = async (req: Request, res: Response) => {
+  const token = req.cookies.authToken;
+  jwt.verify(token, process.env.JWT_SECRET || "enc", (err: any, decoded: any) => {
+    if (err && (err as Error).message.includes('expired')) {
       console.log("Token expired!"); // if token is expired then just log it and continue 
     }
     else if (err) { // if there is any other error such as secret key mismatch then return
@@ -61,11 +64,11 @@ const refresh = async (req, res) => {
   });
 
   // If db is not accessable 
-  if (req.db == undefined) 
+  if (req == undefined) 
     return res.status(500).json({ error: "Something went wrong!" });
 
   // Fetch user from db
-  const user = req.db.users?.find((user)=> user.token == req.token);
+  const user = await User.findOne({ token });
   if (!user) {
     return res.clearCookie('authToken').status(401).json({ error: "Unauthorized! Token is not valid!" });
   }
@@ -78,10 +81,10 @@ const refresh = async (req, res) => {
   );
 
   // updating DB for token
-  const index = req.db.users.findIndex((user)=>user.token == req.token)
-  req.db.users[index].token = newToken;
+  user.token = newToken;
+  await user.save();
   try {
-    // fs.writeFileSync(seedPath, JSON.stringify(req.db, null, 2), 'utf-8');
+    // fs.writeFileSync(seedPath, JSON.stringify(req, null, 2), 'utf-8');
   } catch (error) {
     console.log('db updation failed!')
     return res.status(500).json({ error: "Something went wrong!" });
@@ -99,22 +102,22 @@ const refresh = async (req, res) => {
 
 
 
-const logout = (req, res) => {
+const logout = async (req: Request, res: Response) => {
   // If db is not accessable 
-  if (req.db == undefined) 
+  if (req == undefined) 
     return res.status(500).json({ error: "Something went wrong!" });
 
   // Fetch user from db
-  const user = req.db.users?.find((user)=>user.token == req.user.token);
+  const user = await User.findOne({ token: req.cookies.authToken });
   if (!user) {
     res.clearCookie('authToken').status(401).json({ error: "Unauthorized! Token is not valid!" });
     return
   }
   
-  const index = req.db.users.findIndex((user)=>user.token== req.user.token)
-  req.db.users[index].token = '';
+  user.token = '';
+  await user.save();
   try {
-    // fs.writeFileSync(seedPath, JSON.stringify(req.db, null, 2), 'utf-8');
+    // fs.writeFileSync(seedPath, JSON.stringify(req, null, 2), 'utf-8');
   } catch (error) {
     console.log('db updation failed!')
     return res.status(500).json({ error: "Something went wrong!" });
@@ -124,13 +127,13 @@ const logout = (req, res) => {
 }
 
 
-const getUser = (req, res) => {
+const getUser = async (req: Request, res: Response) => {
   // If db is not accessable 
-  if (req.db == undefined) 
+  if (req == undefined) 
     return res.status(500).json({ error: "Something went wrong!" });
 
   // Fetch user from db
-  const user = req.db.users?.find((user)=>user.token == req.user.token);
+  const user = await User.findOne({ token: req.cookies.authToken });
   if (!user) {
     return res.status(401).json({ error: "Unauthorized! Token is not valid!" });
   }
