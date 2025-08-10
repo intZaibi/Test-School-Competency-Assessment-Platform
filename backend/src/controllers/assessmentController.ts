@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import AssessmentQuestion from "../models/QuestionAssessmentSchema.js";
+import User from "../models/UserSchema.js";
 
 export const createAssessment = async (req: Request, res: Response) => {
   try {
@@ -30,6 +31,29 @@ export const getQuestionsByLevel = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "No Question Found" });
     }
     res.json((questionDoc as any)[step][level]);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const submitAssessment = async (req: Request, res: Response) => {
+  try {
+    const { step, level, score } = req.body;
+    // @ts-ignore
+    await User.updateOne({ email: req.user.email }, {assessmentResults: {...req.user.assessmentResults, [step]: {[level]: { score }} }});
+    res.status(200).json({ message: "Assessment submitted successfully" });
+
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const certificateGeneration = async (req: Request, res: Response) => {
+  try {
+    const { id, status, score, certificateUrl } = req.body;
+    // @ts-ignore
+    await User.updateOne({ email: req.user.email }, { certificate: { id, status, score, certificateUrl } });
+    res.status(200).json({ message: "Certificate generated successfully" });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
