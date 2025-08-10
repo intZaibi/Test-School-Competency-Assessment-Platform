@@ -3,7 +3,7 @@ import { Button } from "../../components/ui/Button";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Shield, Loader2 } from "lucide-react";
-import { getUserInfo, resendOTP, verifyOTP } from "../../features/api/authApi";
+import { getUserInfo, resendOTP, verifyOTP } from "../../features/api/authAPI";
 import { useDispatch, useSelector } from "react-redux";
 import { setUser } from "../../features/slicers/authSlice";
 

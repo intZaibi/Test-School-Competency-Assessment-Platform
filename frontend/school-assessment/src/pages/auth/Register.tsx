@@ -3,7 +3,7 @@ import { Button } from "../../components/ui/Button";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Shield, Loader2 } from "lucide-react";
-import { register } from "../../features/api/authApi";
+import { register } from "../../features/api/authAPI";
 
 export default function RegisterForm() {
   const navigate = useNavigate();

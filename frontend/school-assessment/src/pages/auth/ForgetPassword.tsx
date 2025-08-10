@@ -3,7 +3,7 @@ import { Button } from "../../components/ui/Button";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Shield, Loader2   } from "lucide-react";
-import { sendReset } from "../../features/api/authApi";
+import { sendReset } from "../../features/api/authAPI";
 
 export default function ForgotPasswordForm() {
   const navigate = useNavigate();

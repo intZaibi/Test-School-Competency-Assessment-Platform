@@ -1,9 +1,9 @@
 import React from 'react'
-import { Navigate } from 'react-router-dom';
+// import { Navigate } from 'react-router-dom';
 import Navbar from './Navbar';
 
 export default function ProtectedRoutes({children}: {children: React.ReactNode}) {
-    const isAuthenticated = localStorage.getItem("accessToken");
+    // const isAuthenticated = localStorage.getItem("accessToken");
     // if (!isAuthenticated) {
     //     return <Navigate to="/auth" />;
     // }

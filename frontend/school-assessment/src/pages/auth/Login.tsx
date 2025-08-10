@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
-import { login } from '../../features/api/authApi';
+import { login } from '../../features/api/authAPI';
 import { setUser } from '../../features/slicers/authSlice';
 import { useDispatch } from 'react-redux';
 
