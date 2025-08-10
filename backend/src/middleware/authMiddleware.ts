@@ -12,8 +12,27 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
   // @ts-ignore
   req.token = token;  // attached to be used in routesControllers
   
-  if (req.path === '/api/auth/login' || req.path === '/api/auth/refresh' || req.path === '/api/auth/register' || req.path === '/api/auth/varifyOTP') return next(); // Bypass auth if requested to login or refresh route
+  if (req.path === '/api/auth/login' || req.path === '/api/auth/register' || req.path === '/api/auth/verify-otp' || req.path === '/api/auth/resend-otp' || req.path === '/api/auth/forgot-password') return next(); // Bypass auth if requested to login or refresh route
   
+
+  if (req.path === '/api/auth/refresh') {
+    token = req.cookies?.refreshToken;
+    if (!token) return res.status(401).json({ error: 'Unauthorized' });
+    try {
+    jwt.verify(token, process.env.JWT_SECRET || "enc");
+    const user = await User.findOne({ token });
+    if (user) {
+      // @ts-ignore
+      req.user = user;
+      return next();
+    }
+    } catch (err) {
+      console.log("refresh verification failed!", err)
+      return res.clearCookie('accessToken').clearCookie('refreshToken').status(401).json({ error: 'Unauthorized' });
+    }
+  }
+  
+
   if (!token) return res.status(401).json({ error: 'Unauthorized' });
   
   try {
@@ -27,9 +46,8 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     next();
   } catch (err) {
     if (err && (err as Error).message.includes('expired')){
-      // redirect req to refresh route
-
-      return res.clearCookie('authToken').status(403).json({ error: 'Token expired!' });
+      
+      return res.clearCookie('accessToken').status(403).json({ error: 'Token expired!' });
     } 
     else 
       console.log(err)

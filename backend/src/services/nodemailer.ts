@@ -8,7 +8,8 @@ dotenv.config();
  */
 const transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',
-      port: parseInt(process.env.EMAIL_PORT || '587'),
+      port: 465,
+      secure: true,
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
@@ -19,11 +20,11 @@ const transporter = nodemailer.createTransport({
   /**
    * Send OTP verification email
    */
-  const sendOTPEmail = async (email: string, otp: string, name: string): Promise<void> => {
-    const subject = 'Test School - Email Verification OTP';
+  const sendOTPEmail = async (to: string, otp: string, name: string): Promise<void> => {
+    const subject = 'School Assessment Test - Email Verification OTP';
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #333;">Test School Assessment Platform</h2>
+        <h2 style="color: #333;">School Assessment Test</h2>
         <p>Hello ${name},</p>
         <p>Your email verification OTP is:</p>
         <div style="background-color: #f4f4f4; padding: 20px; text-align: center; margin: 20px 0;">
@@ -31,83 +32,33 @@ const transporter = nodemailer.createTransport({
         </div>
         <p>This OTP will expire in 10 minutes.</p>
         <p>If you didn't request this verification, please ignore this email.</p>
-        <p>Best regards,<br>Test School Team</p>
+        <p>Best regards,<br>School Assessment Test Team</p>
       </div>
     `;
 
-    await sendEmail(email, subject, html);
-  }
-
-  /**
-   * Send password reset email
-   */
-  const sendPasswordResetEmail = async (email: string, resetToken: string, name: string): Promise<void> => {
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
-    const subject = 'Test School - Password Reset Request';
-    const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #333;">Test School Assessment Platform</h2>
-        <p>Hello ${name},</p>
-        <p>You requested a password reset for your account.</p>
-        <p>Click the button below to reset your password:</p>
-        <div style="text-align: center; margin: 30px 0;">
-          <a href="${resetUrl}" style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">Reset Password</a>
-        </div>
-        <p>This link will expire in 1 hour.</p>
-        <p>If you didn't request this reset, please ignore this email.</p>
-        <p>Best regards,<br>Test School Team</p>
-      </div>
-    `;
-
-    await sendEmail(email, subject, html);
+    await sendEmail(to, subject, html);
   }
 
   /**
    * Send certificate email
    */
-  const sendCertificateEmail = async (email: string, name: string, certificateUrl: string, level: string): Promise<void> => {
-    const subject = 'Test School - Your Assessment Certificate';
+  const sendCertificateEmail = async (to: string, name: string, certificateUrl: string, level: string): Promise<void> => {
+    const subject = 'School Assessment Test - Your Assessment Certificate';
     const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #333;">Test School Assessment Platform</h2>
-        <p>Congratulations ${name}!</p>
-        <p>You have successfully completed the competency assessment and achieved level <strong>${level}</strong>.</p>
-        <p>Your digital certificate is ready for download:</p>
+      <div style=" max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #333; text-align: center; font-size: 24px; font-weight: bold; margin-bottom: 20px;">School Assessment Test</h2>
+        <p style="text-align: center; font-size: 18px; font-weight: bold; margin-bottom: 20px;">Congratulations ${name}!</p>
+        <p style=" font-size: 16px; margin-bottom: 20px; line-height: .8;">You have successfully completed the competency assessment and achieved level <strong>${level}</strong>.</p>
+        <p style=" font-size: 16px; margin-bottom: 20px; line-height: .8;">Your digital certificate is ready for download:</p>
         <div style="text-align: center; margin: 30px 0;">
           <a href="${certificateUrl}" style="background-color: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">Download Certificate</a>
         </div>
         <p>Keep this certificate safe as proof of your competency level.</p>
-        <p>Best regards,<br>Test School Team</p>
+        <p>Best regards,<br> <strong> School Assessment Test Team</strong></p>
       </div>
     `;
 
-    await sendEmail(email, subject, html);
-  }
-
-  /**
-   * Send welcome email
-   */
-  const sendWelcomeEmail = async (email: string, name: string): Promise<void> => {
-    const subject = 'Welcome to Test School Assessment Platform';
-    const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #333;">Welcome to Test School Assessment Platform</h2>
-        <p>Hello ${name},</p>
-        <p>Welcome to the Test School Competency Assessment Platform!</p>
-        <p>Your account has been successfully created and verified.</p>
-        <p>You can now:</p>
-        <ul>
-          <li>Take competency assessments</li>
-          <li>Track your progress</li>
-          <li>Download your certificates</li>
-          <li>View your assessment history</li>
-        </ul>
-        <p>Start your assessment journey today!</p>
-        <p>Best regards,<br>Test School Team</p>
-      </div>
-    `;
-
-    await sendEmail(email, subject, html);
+    await sendEmail(to, subject, html);
   }
 
   /**
@@ -116,7 +67,7 @@ const transporter = nodemailer.createTransport({
   const sendEmail = async (to: string, subject: string, html: string): Promise<void> => {
     try {
       const mailOptions = {
-        from: `"Test School" <${process.env.EMAIL_USER}>`,
+        from: `"School Assessment Test" <${process.env.EMAIL_USER}>`,
         to,
         subject,
         html,
@@ -130,18 +81,4 @@ const transporter = nodemailer.createTransport({
     }
   }
 
-  /**
-   * Verify email configuration
-   */
-  const verifyConnection = async (): Promise<boolean> => {
-    try {
-      await transporter.verify();
-      console.log('Email service connection verified');
-      return true;
-    } catch (error) {
-      console.log('Email service connection failed:', error);
-      return false;
-    }
-  }
-
-export { sendOTPEmail, sendPasswordResetEmail, sendCertificateEmail, sendWelcomeEmail, verifyConnection };
+export { sendOTPEmail, sendCertificateEmail };
