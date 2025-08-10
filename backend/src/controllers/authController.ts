@@ -36,20 +36,19 @@ const login = async (req: Request, res: Response) => {
     // Set token as an HTTP-only cookie
   res.cookie('accessToken', token, {
     httpOnly: true, 
-    secure: true,
-    sameSite: 'none',
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: 60 * 15 * 1000,
   });
 
   res.cookie('refreshToken', token, {
-
     httpOnly: true, 
-    secure: true,
-    sameSite: 'none',
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: 60 * 60 * 1000 * 24 * 30,
   });
 
-  res.status(200).json( {message: 'Login successful!', user: { userId: user.id, role: user.role }});
+  res.status(200).json( {message: 'Login successful!', user: { userId: user.id, name: user.name, email: user.email, role: user.role, accessToken: user.token }});
   } catch (error) {
     console.log('db updation failed!')
     return res.status(500).json({ error: "Something went wrong!" });
@@ -61,17 +60,18 @@ const login = async (req: Request, res: Response) => {
 const register = async (req: Request, res: Response) => {
 
   const { name, email, password, role } = req.body;
+  if (!name || !email || !password || !role) return res.status(400).json({ error: "Please provide your name, email, password and role." });
   try {
     console.log('trying to register user')
     const user = await User.findOne({ email });
-    if (user) return res.status(400).json({ error: "Fuck you!Email already exists!" });
+    if (user) return res.status(400).json({ error: "Email already exists!" });
     
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     await User.insertOne({ name, email, password: hashedPassword, role, otp: { code: otp, expiresAt: new Date(Date.now() + 10 * 60 * 1000), isVerified: false }}); 
     await sendOTPEmail(email, otp, name);
-    res.status(200).json({message: 'OTP sent successfully! Please check your email.'});
+    res.status(200).json({message: 'OTP sent successfully! Please check your email.', user: { name, email, role }});
     
   } catch (error) {
     console.log('db updation failed!', error)
@@ -182,26 +182,27 @@ const verifyOTP = async (req: Request, res: Response) => {
     if (user.otp?.isVerified) return res.status(401).json({ error: "OTP already verified!" });
     if (user.otp?.code != otp) return res.status(401).json({ error: "Invalid OTP!" });
     if (user.otp?.expiresAt && user.otp.expiresAt < new Date()) return res.status(401).json({ error: "OTP expired!" });
-    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    const hashedPassword = password ? await bcrypt.hash(password, 10) : user.password;
     const token = jwt.sign(
       {userId: user.id, role: user.role},
       process.env.JWT_SECRET || "enc",
       { expiresIn: '1h' }
     );
-    await User.updateOne({email: user.email}, {otp: { code: '', expiresAt: new Date(), isVerified: true }, password: hashedPassword, token: token});
+    await User.updateOne({email: user.email}, {otp: { code: '', expiresAt: new Date(), isVerified: true }, password: password ? hashedPassword : user.password, token: token});
   
 
     res.cookie('accessToken', token, {
       httpOnly: true, 
-      secure: true,
-      sameSite: 'none',
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: 60 * 15 * 1000,
     });
   
     res.cookie('refreshToken', token, {
       httpOnly: true, 
-      secure: true,
-      sameSite: 'none',
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: 60 * 60 * 1000 * 24 * 30,
     });
   

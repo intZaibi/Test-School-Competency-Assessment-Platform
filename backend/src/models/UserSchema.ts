@@ -37,7 +37,7 @@ const userSchema = new mongoose.Schema({
         score: { type: Number, required: true, default: 0 },
       },
     },
-    required: false,
+    // required: false,
   },
   certificate: {
     id: { type: String, required: true, unique: true, default: uuidv4() },
@@ -45,7 +45,7 @@ const userSchema = new mongoose.Schema({
     status: { type: String, required: true, default: 'A1' },
     issueDate: { type: Date, required: true, default: new Date() },
     certificateUrl: { type: String, required: false },
-    required: false,
+    // required: false,
   },
 }, { timestamps: true });
 

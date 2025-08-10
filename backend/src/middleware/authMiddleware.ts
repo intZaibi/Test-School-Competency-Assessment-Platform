@@ -7,6 +7,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
   let token = headers.startsWith('Bearer ') ? headers.slice(7) : null;
   if (!token) {
     token = req.cookies?.accessToken;
+    console.log(req.cookies);
   }
 
   // @ts-ignore

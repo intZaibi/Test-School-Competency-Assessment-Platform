@@ -5,6 +5,8 @@ import User from "../models/UserSchema.js";
 export const createAssessment = async (req: Request, res: Response) => {
   try {
     const { step1, step2, step3 } = req.body;
+    if (!step1 || !step2 || !step3) return res.status(400).json({ error: "Please provide all the steps." });
+    
     const doc = new AssessmentQuestion({ step1, step2, step3 });
     const saved = await doc.save();
     res.status(201).json({ message: "Questions saved successfully", data: saved });
