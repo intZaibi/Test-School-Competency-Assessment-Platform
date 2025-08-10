@@ -6,7 +6,7 @@ import { login, register, refresh, logout, getUser, verifyOTP, changePassword, r
 
 router.post('/login', login);
 router.post('/register', register);
-router.post('/refresh', refresh); 
+router.get('/refresh', refresh); 
 router.post('/logout', logout);
 router.get('/get-user', getUser);
 router.post('/verify-otp', verifyOTP);

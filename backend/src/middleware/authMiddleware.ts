@@ -7,7 +7,6 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
   let token = headers.startsWith('Bearer ') ? headers.slice(7) : null;
   if (!token) {
     token = req.cookies?.accessToken;
-    console.log(req.cookies);
   }
 
   // @ts-ignore
@@ -24,7 +23,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     const user = await User.findOne({ token });
     if (user) {
       // @ts-ignore
-      req.user = user;
+      req.token = token;
       return next();
     }
     } catch (err) {
@@ -38,7 +37,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
   
   try {
     jwt.verify(token, process.env.JWT_SECRET || "enc");
-    const user = await User.findOne({ token });
+    const user = jwt.decode(token);
     if (user) {
       // @ts-ignore
       req.user = user;

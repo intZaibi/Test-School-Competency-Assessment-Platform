@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Shield, Loader2 } from "lucide-react";
 import { register } from "../../features/api/authAPI";
+import { setUser } from "../../features/slicers/authSlice";
+import { useDispatch } from "react-redux";
 
 export default function RegisterForm() {
   const navigate = useNavigate();
@@ -14,13 +16,18 @@ export default function RegisterForm() {
   const [error, setError] = useState("");
   const [role] = useState("student");
   const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (password !== confirmPassword) return setError("Passwords do not match!");
     setLoading(true);
     try {
       const res = await register(name, email, password, role);
       if (res.error) throw new Error(res.error);
-      else navigate('/otp');
+      else {
+        dispatch(setUser(res.user));
+        navigate('/otp');
+      }
     } catch (error) {
       setError(error instanceof Error ? error.message : "Register failed!");
     } finally {

@@ -3,11 +3,13 @@ import StatCard from '../components/StatCard';
 import ActionButton from '../components/ActionButtonCard';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import type { RootState } from '../utils/store';
 
 const QuizDashboard = () => {
   const navigate = useNavigate();
-  const { user } = useSelector((state: any) => state.auth);
-  console.log(user);
+  const authState = useSelector((state: RootState) => state.auth);
+  // const { user } = authState;
+  console.log('Dashboard - Full auth state:', authState);
   const assessmentStructure = [
     { step: 1, title: 'A1/A2 Level Questions', duration: '30 minutes', completed: true },
     { step: 2, title: 'B1/B2 Level Questions', duration: '45 minutes', completed: true },

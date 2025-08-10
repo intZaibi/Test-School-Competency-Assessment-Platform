@@ -122,4 +122,17 @@ export const getUserInfo = async () => {
   }
 }
 
+export const refreshToken = async () => {
+  try {
+    const response = await api.get("/auth/refresh");
+    return response.data;
+  } catch (error) {
+    console.log("refreshToken failed!", error);
+    if (axios.isAxiosError(error)) {
+      return { error: error.response?.data?.error || error.message || "Refresh token failed!" };
+    }
+    return { error: "Refresh token failed!" };
+  }
+}
+
 export default api;

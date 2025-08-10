@@ -20,7 +20,8 @@ const LoginForm = () => {
       const res = await login(form.email, form.password);
       if (res.error) throw new Error(res.error);
       else {
-        console.log(res);
+        console.log('Login response:', res);
+        console.log('Dispatching user:', res.user);
         dispatch(setUser(res.user));
         navigate('/dashboard');
       }

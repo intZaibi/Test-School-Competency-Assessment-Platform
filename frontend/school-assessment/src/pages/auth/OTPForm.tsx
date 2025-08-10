@@ -1,22 +1,23 @@
 import { Input } from "../../components/ui/Input";
 import { Button } from "../../components/ui/Button";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Shield, Loader2 } from "lucide-react";
-import { getUserInfo, resendOTP, verifyOTP } from "../../features/api/authAPI";
-import { useDispatch, useSelector } from "react-redux";
-import { setUser } from "../../features/slicers/authSlice";
+import { resendOTP, verifyOTP } from "../../features/api/authAPI";
+import { useSelector } from "react-redux";
+import type { RootState } from "../../utils/store";
 
 export default function OTPVerificationForm() {
   const navigate = useNavigate();
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
-  const dispatch = useDispatch();
-  const { user } = useSelector((state: any) => state.auth);
+  const { user } = useSelector((state: RootState) => state.auth);
   const [loading, setLoading] = useState(false);
+  const [resendOTPStatus, setResendOTPStatus] = useState("");
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
+    // @ts-ignore
     if (!user?.email) {
       setError("Something went wrong!");
       navigate('/login');
@@ -27,6 +28,8 @@ export default function OTPVerificationForm() {
     }
     setLoading(true);
     try {
+      
+      // @ts-ignore
       const res = await verifyOTP(user?.email, otp);
       if (res.error) throw new Error(res.error);
       else navigate('/dashboard');
@@ -36,30 +39,29 @@ export default function OTPVerificationForm() {
       setLoading(false);
     }
   };
-  // console.log(user);
-
-  useEffect(() => {
-    const fetchUserInfo = async () => {
-      const res = await getUserInfo();
-      if (res.error) throw new Error(res.error);
-      else dispatch(setUser(res));
-    };
-    fetchUserInfo();
-  }, []);
 
   const handleResendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
+    // @ts-ignore
     if (!user?.email) {
       setError("Please enter a valid email");
       return;
     }
+    setLoading(true);
     try {
+      // @ts-ignore
       const res = await resendOTP(user?.email);
-      console.log(res);
       if (res.error) throw new Error(res.error);
-      else navigate('/otp');
+      else {
+        setResendOTPStatus("OTP resent successfully!");
+        setTimeout(() => {
+          setResendOTPStatus("");
+        }, 3000);
+      }
     } catch (error) {
       setError(error instanceof Error ? error.message : "Resend OTP failed!");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -90,11 +92,12 @@ export default function OTPVerificationForm() {
             <form onSubmit={handleVerify} className="flex flex-col gap-4">
               <Input required placeholder="Enter OTP" value={otp} onChange={(e) => setOtp(e.target.value)} />
               {error && <p className="text-red-400">{error}</p>}
+              {resendOTPStatus && <p className="text-green-400">{resendOTPStatus}</p>}
               <Button type="submit" disabled={loading}>{loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Verify"}</Button>
             </form>
 
             <div className="mt-2 text-sm flex items-center justify-center gap-2">
-              <button onClick={handleResendOTP} className="cursor-pointer text-slate-400 hover:text-slate-300">Resend OTP</button>
+              <button disabled={loading} onClick={handleResendOTP} className="cursor-pointer text-slate-400 hover:text-slate-300">Resend OTP</button>
               <button onClick={() => navigate('/login')} className="cursor-pointer text-slate-400 hover:text-slate-300">Back to Login</button>
             </div>
           </div>

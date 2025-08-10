@@ -26,29 +26,31 @@ const login = async (req: Request, res: Response) => {
 
   // Generate JWT
   const token = jwt.sign(
-    { userId: user.id, role: user.role },
+    { userId: user._id, role: user.role },
     process.env.JWT_SECRET || "enc",
     { expiresIn: '1h' }
   );
 
-  await User.updateOne({email: user.email}, {token: token});
+  await User.updateOne({email}, {token});
 
     // Set token as an HTTP-only cookie
   res.cookie('accessToken', token, {
     httpOnly: true, 
     secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    sameSite: 'lax',
     maxAge: 60 * 15 * 1000,
+    path: '/'
   });
 
   res.cookie('refreshToken', token, {
     httpOnly: true, 
     secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    sameSite: 'lax',
     maxAge: 60 * 60 * 1000 * 24 * 30,
+    path: '/'
   });
 
-  res.status(200).json( {message: 'Login successful!', user: { userId: user.id, name: user.name, email: user.email, role: user.role, accessToken: user.token }});
+  res.status(200).json( {message: 'Login successful!', user: { userId: user._id, name: user.name, email: user.email, role: user.role, accessToken: user.token }});
   } catch (error) {
     console.log('db updation failed!')
     return res.status(500).json({ error: "Something went wrong!" });
@@ -62,7 +64,6 @@ const register = async (req: Request, res: Response) => {
   const { name, email, password, role } = req.body;
   if (!name || !email || !password || !role) return res.status(400).json({ error: "Please provide your name, email, password and role." });
   try {
-    console.log('trying to register user')
     const user = await User.findOne({ email });
     if (user) return res.status(400).json({ error: "Email already exists!" });
     
@@ -108,22 +109,21 @@ const refresh = async (req: Request, res: Response) => {
 
     // Generate JWT
     const newToken = jwt.sign(
-      {userId: user.id, role: user.role},
+      {userId: user._id, role: user.role},
       process.env.JWT_SECRET || "enc",
       { expiresIn: '1h' }
     );
 
-    await User.updateOne({email: user.email}, {token: newToken});
-
     // Set token as an HTTP-only cookie
     res.cookie('accessToken', newToken, {
       httpOnly: true, 
-      secure: true,
-      sameSite: 'none',
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
       maxAge: 60 * 15 * 1000,
+      path: '/'
     });
   
-    res.status(200).json({message: 'Token refreshed successfully!', user: { userId: user.id, role: user.role }});
+    res.status(200).json({message: 'Token refreshed successfully!', user: { userId: user._id, role: user.role, accessToken: newToken }});
 
   } catch (error) {
     console.log('db updation failed!')
@@ -158,14 +158,14 @@ const logout = async (req: Request, res: Response) => {
 const getUser = async (req: Request, res: Response) => {
   try {
     //@ts-ignore
-  const user = await User.findOne({ token: req.token });
+  const user = await User.findOne({ _id: req.user.userId });
   if (!user) {
     return res.status(401).json({ error: "Unauthorized! Token is not valid!" });
   }
 
-    res.status(200).json( {message: 'User fetched successfully!', user: { userId: user.id, name: user.name, email: user.email, role: user.role, accessToken: user.token }});
+    res.status(200).json( {message: 'User fetched successfully!', user: { userId: user._id, name: user.name, email: user.email, role: user.role }});
   } catch (error) {
-    console.log('db updation failed!', error)
+    console.log('getUser error:', error)
     return res.status(500).json({ error: "Something went wrong!" });
   }
 }
@@ -173,19 +173,18 @@ const getUser = async (req: Request, res: Response) => {
 
 const verifyOTP = async (req: Request, res: Response) => {
   const { email, otp, password } = req.body;
-  if (!email || !otp || !password) return res.status(400).json({ error: "Please provide your email, OTP and password." });
+  if (!email || !otp ) return res.status(400).json({ error: "Please provide your email and OTP." });
 
   try {
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ error: "Email not found!" });
-    console.log(user.otp?.code, otp)
     if (user.otp?.isVerified) return res.status(401).json({ error: "OTP already verified!" });
     if (user.otp?.code != otp) return res.status(401).json({ error: "Invalid OTP!" });
     if (user.otp?.expiresAt && user.otp.expiresAt < new Date()) return res.status(401).json({ error: "OTP expired!" });
     
     const hashedPassword = password ? await bcrypt.hash(password, 10) : user.password;
     const token = jwt.sign(
-      {userId: user.id, role: user.role},
+      {userId: user._id, role: user.role},
       process.env.JWT_SECRET || "enc",
       { expiresIn: '1h' }
     );
@@ -195,18 +194,20 @@ const verifyOTP = async (req: Request, res: Response) => {
     res.cookie('accessToken', token, {
       httpOnly: true, 
       secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      sameSite: 'lax',
       maxAge: 60 * 15 * 1000,
+      path: '/'
     });
   
     res.cookie('refreshToken', token, {
       httpOnly: true, 
       secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      sameSite: 'lax',
       maxAge: 60 * 60 * 1000 * 24 * 30,
+      path: '/'
     });
   
-    return res.status(200).json({ message: "OTP verified successfully!", user: { userId: user.id, role: user.role } });
+    return res.status(200).json({ message: "OTP verified successfully!", user: { userId: user._id, role: user.role } });
   
   } catch (error) {
     console.log('db updation failed!', error)
