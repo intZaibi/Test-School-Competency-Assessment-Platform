@@ -1,16 +1,66 @@
 import { Input } from "../../components/ui/Input";
 import { Button } from "../../components/ui/Button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Shield } from "lucide-react";
+import { Shield, Loader2 } from "lucide-react";
+import { getUserInfo, resendOTP, verifyOTP } from "../../features/api/authApi";
+import { useDispatch, useSelector } from "react-redux";
+import { setUser } from "../../features/slicers/authSlice";
 
 export default function OTPVerificationForm() {
   const navigate = useNavigate();
   const [otp, setOtp] = useState("");
+  const [error, setError] = useState("");
+  const dispatch = useDispatch();
+  const { user } = useSelector((state: any) => state.auth);
+  const [loading, setLoading] = useState(false);
 
-  const handleVerify = () => {
-    // setView("login");
-    navigate('/login');
+  const handleVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user?.email) {
+      setError("Something went wrong!");
+      navigate('/login');
+    }
+    if (!otp) {
+      setError("Please enter a valid OTP");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await verifyOTP(user?.email, otp);
+      if (res.error) throw new Error(res.error);
+      else navigate('/dashboard');
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Verify OTP failed!");
+    } finally {
+      setLoading(false);
+    }
+  };
+  // console.log(user);
+
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      const res = await getUserInfo();
+      if (res.error) throw new Error(res.error);
+      else dispatch(setUser(res));
+    };
+    fetchUserInfo();
+  }, []);
+
+  const handleResendOTP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user?.email) {
+      setError("Please enter a valid email");
+      return;
+    }
+    try {
+      const res = await resendOTP(user?.email);
+      console.log(res);
+      if (res.error) throw new Error(res.error);
+      else navigate('/otp');
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Resend OTP failed!");
+    }
   };
 
   return (
@@ -38,11 +88,13 @@ export default function OTPVerificationForm() {
 
 
             <form onSubmit={handleVerify} className="flex flex-col gap-4">
-              <Input placeholder="Enter OTP" value={otp} onChange={(e) => setOtp(e.target.value)} />
-              <Button type="submit">Verify</Button>
+              <Input required placeholder="Enter OTP" value={otp} onChange={(e) => setOtp(e.target.value)} />
+              {error && <p className="text-red-400">{error}</p>}
+              <Button type="submit" disabled={loading}>{loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Verify"}</Button>
             </form>
 
             <div className="mt-2 text-sm flex items-center justify-center gap-2">
+              <button onClick={handleResendOTP} className="cursor-pointer text-slate-400 hover:text-slate-300">Resend OTP</button>
               <button onClick={() => navigate('/login')} className="cursor-pointer text-slate-400 hover:text-slate-300">Back to Login</button>
             </div>
           </div>

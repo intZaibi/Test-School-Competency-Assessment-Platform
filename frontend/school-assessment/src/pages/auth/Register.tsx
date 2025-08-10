@@ -2,16 +2,30 @@ import { Input } from "../../components/ui/Input";
 import { Button } from "../../components/ui/Button";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Shield } from "lucide-react";
+import { Shield, Loader2 } from "lucide-react";
+import { register } from "../../features/api/authApi";
 
 export default function RegisterForm() {
   const navigate = useNavigate();
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const handleRegister = () => {
-    // setView("otp");
-    navigate('/otp');
+  const [error, setError] = useState("");
+  const [role] = useState("student");
+  const [loading, setLoading] = useState(false);
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await register(name, email, password, role);
+      if (res.error) throw new Error(res.error);
+      else navigate('/otp');
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Register failed!");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -39,10 +53,12 @@ export default function RegisterForm() {
 
 
             <form onSubmit={handleRegister} className="flex flex-col gap-4">
+              <Input placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />
               <Input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
               <Input placeholder="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
               <Input placeholder="Confirm Password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
-              <Button type="submit">Register</Button>
+              {error && <p className="text-red-400">{error}</p>}
+              <Button type="submit" disabled={loading}>{loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Register"}</Button>
               <div className="mt-2 text-sm flex items-center justify-center gap-2">
                 <button onClick={() => navigate('/login')} className="cursor-pointer text-slate-400 hover:text-slate-300">Back to Login</button>
               </div>

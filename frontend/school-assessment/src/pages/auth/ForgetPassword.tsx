@@ -2,15 +2,26 @@ import { Input } from "../../components/ui/Input";
 import { Button } from "../../components/ui/Button";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Shield } from "lucide-react";
+import { Shield, Loader2   } from "lucide-react";
+import { sendReset } from "../../features/api/authApi";
 
 export default function ForgotPasswordForm() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSendReset = () => {
-    // setView("login");
-    navigate('/otp');
+  const handleSendReset = async () => {
+    setLoading(true);
+    try {
+      const res = await sendReset(email);
+      if (res.error) throw new Error(res.error);
+      else navigate('/otp');
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Send reset link failed!");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -39,7 +50,8 @@ export default function ForgotPasswordForm() {
 
             <form onSubmit={handleSendReset} className="flex flex-col gap-4">
               <Input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-              <Button type="submit">Send Reset Link</Button>
+              {error && <p className="text-red-400">{error}</p>}
+              <Button type="submit" disabled={loading}>{loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Send Reset Link"}</Button>
               <div className="mt-2 text-sm flex items-center justify-center gap-2">
                 <button onClick={() => navigate('/login')} className="cursor-pointer text-slate-400 hover:text-slate-300">Back to Login</button>
               </div>
