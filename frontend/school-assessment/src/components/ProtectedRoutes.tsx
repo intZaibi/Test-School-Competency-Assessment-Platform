@@ -14,10 +14,8 @@ export default function ProtectedRoutes({children}: {children: React.ReactNode})
         const fetchUserInfo = async () => {
             try {
                 const res = await getUserInfo();
-                console.log('getUserInfo response:', res)
                 if (res.error && res.error.includes("Unauthorized")) {
                     const response = await refreshToken();
-                    console.log('refresh token response:', response)
                     if (response.error && response.error.includes("Unauthorized")) {
                         setIsAuthenticated(false);
                     } else {

@@ -1,19 +1,60 @@
-import { FileText, CheckCircle, TrendingUp, Trophy, Eye } from 'lucide-react';
+import { FileText, CheckCircle, TrendingUp, Trophy, Eye, Info } from 'lucide-react';
 import StatCard from '../components/StatCard';
 import ActionButton from '../components/ActionButtonCard';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../utils/store';
+import { getUserData } from '../features/api/assessmentAPI';
+import { useEffect, useState } from 'react';
 
-const QuizDashboard = () => {
+const Dashboard = () => {
   const navigate = useNavigate();
   const authState = useSelector((state: RootState) => state.auth);
-  // const { user } = authState;
-  console.log('Dashboard - Full auth state:', authState);
+  const { user } = authState;
+
+  const [assessmentData, setAssessmentData] = useState<any>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  useEffect(() => {
+    const fetchAssessmentStructure = async () => {
+      setIsLoading(true);
+      try {
+        const response = await getUserData();
+        setAssessmentData(response.assessmentResults);
+      } catch (error) {
+        console.error('Error fetching assessment data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchAssessmentStructure();
+  }, [])
+
+  console.log('assessmentData:', assessmentData)
+  if (isLoading) 
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            Loading Data
+          </h2>
+          <p className="text-gray-600">
+            Please wait while we load your data...
+          </p>
+        </div>
+      </div>
+    );
+
+  const totalScore = assessmentData?.step1?.A1?.score + assessmentData?.step1?.A2?.score + assessmentData?.step2?.B1?.score + assessmentData?.step2?.B2?.score + assessmentData?.step3?.C1?.score + assessmentData?.step3?.C2?.score;
+
   const assessmentStructure = [
-    { step: 1, title: 'A1/A2 Level Questions', duration: '30 minutes', completed: true },
-    { step: 2, title: 'B1/B2 Level Questions', duration: '45 minutes', completed: true },
-    { step: 3, title: 'C1/C2 Level Questions', duration: '60 minutes', completed: true }
+    { step: 1, title: 'A1 Level Questions', duration: '22 minutes', completed: assessmentData?.step1?.A1?.isCompleted },
+    { step: 2, title: 'A2 Level Questions', duration: '22 minutes', completed: assessmentData?.step1?.A2?.isCompleted },
+    { step: 3, title: 'B1 Level Questions', duration: '22 minutes', completed: assessmentData?.step2?.B1?.isCompleted },
+    { step: 4, title: 'B2 Level Questions', duration: '22 minutes', completed: assessmentData?.step2?.B2?.isCompleted },
+    { step: 5, title: 'C1 Level Questions', duration: '22 minutes', completed: assessmentData?.step3?.C1?.isCompleted },
+    { step: 6, title: 'C2 Level Questions', duration: '22 minutes', completed: assessmentData?.step3?.C2?.isCompleted }
   ];
 
   const benefits = [
@@ -22,48 +63,42 @@ const QuizDashboard = () => {
     'Performance analytics'
   ];
 
-  const assessmentData = {
-    status: 'Completed',
-    totalScore: 265,
-    maxScore: 100,
-    level: 'Expert',
-    userName: 'Shahzaib Ali'
-  };
-
   const handleViewResults = () => {
     navigate('/results');
   };
+
+  
 
   return (
     <div className="space-y-8">
       {/* Welcome Section */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome back, {assessmentData.userName}!</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome back, {user?.name || 'User'}!</h1>
         <p className="text-gray-600">Ready to test your competencies? Take the assessment to get your certificate.</p>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatCard
-          icon={CheckCircle}
+          icon={assessmentData?.step3?.C2?.isCompleted ? CheckCircle : Info}
           title="Assessment Status"
-          value="Completed"
-          textColor="text-green-600"
-          iconBg="bg-green-100"
+          value={assessmentData?.isStarted ? assessmentData?.level === 'C2' ? 'Completed' : 'Incomplete' : 'Not Started'}
+          textColor={assessmentData?.isStarted ? 'text-green-600' : 'text-yellow-600'}
+          iconBg={assessmentData?.isStarted ? 'bg-green-100' : 'bg-yellow-100'}
         />
         <StatCard
           icon={TrendingUp}
           title="Total Score"
-          value={`${assessmentData.totalScore}/100`}
+          value={`${totalScore}/132`}
           textColor="text-blue-600"
           iconBg="bg-blue-100"
         />
         <StatCard
           icon={Trophy}
           title="Level Achieved"
-          value="Expert 🏆"
-          textColor="text-purple-600"
-          iconBg="bg-purple-100"
+          value={assessmentData?.level || 'Not Started'}
+          textColor={assessmentData?.level.includes("C") ? 'text-purple-600' : assessmentData?.level.includes("B") ? 'text-green-600' : assessmentData?.level.includes("A") ? 'text-yellow-600' : 'text-gray-600'}
+          iconBg={assessmentData?.level.includes("C") ? 'bg-purple-100' : assessmentData?.level.includes("B") ? 'bg-green-100' : assessmentData?.level.includes("A") ? 'bg-yellow-100' : 'bg-gray-100'}
         />
       </div>
 
@@ -130,4 +165,4 @@ const QuizDashboard = () => {
   );
 };
 
-export default QuizDashboard;
+export default Dashboard;

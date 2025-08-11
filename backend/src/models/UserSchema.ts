@@ -16,27 +16,35 @@ const userSchema = new mongoose.Schema({
     step1: {
       A1: {
         score: { type: Number, required: true, default: 0 },
+        isCompleted: { type: Boolean, required: true, default: false },
       },
       A2: {
         score: { type: Number, required: true, default: 0 },
+        isCompleted: { type: Boolean, required: true, default: false },
       },
     },
     step2: {
       B1: {
         score: { type: Number, required: true, default: 0 },
+        isCompleted: { type: Boolean, required: true, default: false },
       },
       B2: {
         score: { type: Number, required: true, default: 0 },
+        isCompleted: { type: Boolean, required: true, default: false },
       },
     },
     step3: {
       C1: {
         score: { type: Number, required: true, default: 0 },
+        isCompleted: { type: Boolean, required: true, default: false },
       },
       C2: {
         score: { type: Number, required: true, default: 0 },
+        isCompleted: { type: Boolean, required: true, default: false },
       },
     },
+    level: { type: String, required: true, default: 'Not Started' },
+    isStarted: { type: Boolean, required: true, default: false },
     // required: false,
   },
   certificate: {

@@ -1,4 +1,4 @@
- export const data = {
+ export default data = {
   "step1": {
     "A1": [
       {

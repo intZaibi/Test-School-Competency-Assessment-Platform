@@ -14,12 +14,12 @@ function App() {
 
     <Router>
       <Routes>
-        <Route element={<Navigate to="/login" replace />} />
+        <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="/login" element={<LoginForm />} />
         <Route path="/register" element={<RegisterForm />} />
         <Route path="/otp" element={<OTPVerificationForm />} />
         <Route path="/forgot-password" element={<ForgotPasswordForm />} />
-        <Route index path="/dashboard" element={<ProtectedRoutes><Dashboard /></ProtectedRoutes>} />
+        <Route path="/dashboard" element={<ProtectedRoutes><Dashboard /></ProtectedRoutes>} />
         <Route path="/assessment" element={<ProtectedRoutes><Assessment /></ProtectedRoutes>} />
         <Route path="/results" element={<ProtectedRoutes><Results /></ProtectedRoutes>} />
       </Routes>
