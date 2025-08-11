@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: "http://localhost:5000/api/assessments",
+  baseURL: "https://test-school-competency-assessment.onrender.com/api/assessments",
   withCredentials: true,
 });
 
