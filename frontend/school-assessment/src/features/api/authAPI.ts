@@ -1,7 +1,7 @@
 import axios from "axios";
  axios.defaults.headers.post['Access-Control-Allow-Origin'] = '*';
 const api = axios.create({
-  baseURL: "https://test-school-competency-assessment-c1op.onrender.com/api",
+  baseURL: "/api",
   withCredentials: true,
 });
 
