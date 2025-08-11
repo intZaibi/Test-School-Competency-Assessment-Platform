@@ -21,7 +21,7 @@ export const login = async (email: string, password: string) => {
     //   throw new Error('Network response was not ok');
     // }
     // const result = await response.json();
-    return response
+    return response.data
   } catch (error) {
     console.log("login failed!", error);
     if (axios.isAxiosError(error)) {
