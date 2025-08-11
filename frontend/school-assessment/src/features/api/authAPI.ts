@@ -1,5 +1,5 @@
 import axios from "axios";
-
+ axios.defaults.headers.post['Access-Control-Allow-Origin'] = '*';
 const api = axios.create({
   baseURL: "https://test-school-competency-assessment.onrender.com/api",
   withCredentials: true,
