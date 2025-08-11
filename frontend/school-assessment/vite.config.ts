@@ -4,5 +4,10 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+  server: {
+    proxy:{
+      '/api': 'https://test-school-competency-assessment-c1op.onrender.com/api'
+    }
+  },
   plugins: [react(), tailwindcss()],
 })
