@@ -44,9 +44,9 @@ export const submitAssessment = async (step: string, level: string, score: numbe
   }
 }
 
-export const generateCertificate = async (id: string, status: string, score: number, certificateUrl: string) => {
+export const generateCertificate = async (score: number, status: string) => {
   try {
-    const response = await api.post("/certificate", { id, status, score, certificateUrl });
+    const response = await api.post("/certificate", { score, status });
     return response.data;
   } catch (error) {
     console.error("Error generating certificate:", error);
@@ -69,3 +69,4 @@ export const getUserData = async () => {
     return { error: "Get user data failed!" };
   }
 }
+

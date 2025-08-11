@@ -2,9 +2,10 @@ import { Trophy, Download } from 'lucide-react';
 
 type Props = {
   assessmentData: any;
+  certificateData?: any;
 };
 
-export default function Certificate ({ assessmentData }: Props) {
+export default function Certificate ({ assessmentData, certificateData }: Props) {
 
   const handleDownloadCertificateCanvas = async () => {
     // Generate a PNG certificate using a canvas and trigger download
@@ -87,8 +88,8 @@ export default function Certificate ({ assessmentData }: Props) {
     ctx.stroke();
 
     // Footer info
-    const currentDate = new Date().toLocaleDateString();
-    const certificateId = 'TSA-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+    const currentDate = certificateData?.issueDate ? new Date(certificateData.issueDate).toLocaleDateString() : new Date().toLocaleDateString();
+    const certificateId = certificateData?.id || 'TSA-' + Math.random().toString(36).substr(2, 9).toUpperCase();
 
     // Date issued
     ctx.fillStyle = '#6b7280';
@@ -158,11 +159,11 @@ export default function Certificate ({ assessmentData }: Props) {
         <div className="flex justify-between items-center pt-8 border-t border-gray-200">
           <div>
             <p className="text-sm text-gray-600">Date Issued</p>
-            <p className="font-medium">{new Date().toLocaleDateString()}</p>
+            <p className="font-medium">{certificateData?.issueDate ? new Date(certificateData.issueDate).toLocaleDateString() : new Date().toLocaleDateString()}</p>
           </div>
           <div>
             <p className="text-sm text-gray-600">Certificate ID</p>
-            <p className="font-medium">TSA-{Math.random().toString(36).substr(2, 9).toUpperCase()}</p>
+            <p className="font-medium">{certificateData?.id || 'TSA-' + Math.random().toString(36).substr(2, 9).toUpperCase()}</p>
           </div>
         </div>
       </div>

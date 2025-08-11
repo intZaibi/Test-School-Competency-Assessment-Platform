@@ -1,4 +1,4 @@
- export default data = {
+const data = {
   "step1": {
     "A1": [
       {
@@ -2327,4 +2327,6 @@
       }
     ]
   }
-}
+};
+
+export default data;

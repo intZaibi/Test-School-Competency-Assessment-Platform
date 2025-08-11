@@ -30,7 +30,6 @@ const Dashboard = () => {
     fetchAssessmentStructure();
   }, [])
 
-  console.log('assessmentData:', assessmentData)
   if (isLoading) 
     return (
       <div className="flex items-center justify-center min-h-screen">
