@@ -1,5 +1,4 @@
 import axios from "axios";
- axios.defaults.headers.post['Access-Control-Allow-Origin'] = '*';
 const api = axios.create({
   baseURL: "/api",
   withCredentials: true,
@@ -7,19 +6,14 @@ const api = axios.create({
 
 export const login = async (email: string, password: string) => {
   try {
-    const response = await api.post("/auth/login", { email, password });
-    // const response = await fetch('https://test-school-competency-assessment.onrender.com/api/auth/login', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //   },
-    //   body: JSON.stringify({ email, password }),
-    //   credentials: 'include',
-    //   mode: 'cors', // Ensure CORS mode is set
-    // });
-    //  if (!response.ok) {
-    //   throw new Error('Network response was not ok');
-    // }
+    const response = await api.post("/auth/login", { email, password }, headers: {
+      'Access-Control-Allow-Origin': '*',   // Usually set by the server, not needed on client
+      'Access-Control-Allow-Headers': '*',   // Same as above
+      'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+      'Access-Control-Allow-Credentials': 'true', // Required for credentials-based requests
+      'Sec-Fetch-Mode': 'no-cors',           // This can be used for fetch security mode
+      'Sec-Fetch-Site': 'same-site'          // This is a browser security feature
+    });
     // const result = await response.json();
     return response.data
   } catch (error) {
