@@ -1,6 +1,6 @@
 import axios from "axios";
 const api = axios.create({
-  baseURL: "/api",
+  baseURL: "https://test-school-competency-assessment-c1op.onrender.com/api",
   withCredentials: true,
 });
 
