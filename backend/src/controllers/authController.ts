@@ -37,7 +37,6 @@ const login = async (req: Request, res: Response) => {
   res.cookie('accessToken', token, {
     httpOnly: true, 
     secure: true,
-    sameSite: 'lax',
     maxAge: 60 * 15 * 1000,
     path: '/'
   });
@@ -45,7 +44,6 @@ const login = async (req: Request, res: Response) => {
   res.cookie('refreshToken', token, {
     httpOnly: true, 
     secure: true,
-    sameSite: 'lax',
     maxAge: 60 * 60 * 1000 * 24 * 30,
     path: '/'
   });
@@ -117,8 +115,7 @@ const refresh = async (req: Request, res: Response) => {
     // Set token as an HTTP-only cookie
     res.cookie('accessToken', newToken, {
       httpOnly: true, 
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: true,
       maxAge: 60 * 15 * 1000,
       path: '/'
     });
@@ -193,16 +190,14 @@ const verifyOTP = async (req: Request, res: Response) => {
 
     res.cookie('accessToken', token, {
       httpOnly: true, 
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: true,
       maxAge: 60 * 15 * 1000,
       path: '/'
     });
   
     res.cookie('refreshToken', token, {
       httpOnly: true, 
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: true,
       maxAge: 60 * 60 * 1000 * 24 * 30,
       path: '/'
     });
