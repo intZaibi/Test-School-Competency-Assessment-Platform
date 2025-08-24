@@ -12,7 +12,7 @@ const app = express();
 
 // CORS configuration
 app.use(cors({
-  origin:  '*',
+  origin:  'https://test-school-competency-assessment-c1op.onrender.com',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
