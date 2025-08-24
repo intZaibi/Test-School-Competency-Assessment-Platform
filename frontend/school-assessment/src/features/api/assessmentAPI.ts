@@ -1,8 +1,7 @@
 import axios from 'axios';
-import 'dotenv/config.js'
-const baseURL = `${process.env.BACKEND_URL}/assessments`
+const baseURL = import.meta.env.VITE_BACKEND_URL
 const api = axios.create({
-  baseURL,
+  baseURL: `${baseURL}/assessments`,
   withCredentials: true,
 });
 
