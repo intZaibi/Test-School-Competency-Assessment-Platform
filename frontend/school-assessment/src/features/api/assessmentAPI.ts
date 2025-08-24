@@ -1,7 +1,8 @@
 import axios from 'axios';
-
+import 'dotenv/config.js'
+const baseURL = `${process.env.BACKEND_URL}/assessments`
 const api = axios.create({
-  baseURL: "https://test-school-competency-assessment.onrender.com/api/assessments",
+  baseURL,
   withCredentials: true,
 });
 
